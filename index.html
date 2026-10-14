@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mitran AI</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #10121a);
+      color: var(--tg-theme-text-color, #ffffff);
+    }
+
+    header {
+      padding: 24px 18px;
+      background: linear-gradient(135deg, #26235a, #151727);
+      border-radius: 0 0 24px 24px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 0;
+      color: #c9c9e8;
+    }
+
+    nav {
+      display: flex;
+      gap: 8px;
+      padding: 16px 12px;
+    }
+
+    nav button {
+      flex: 1;
+      padding: 12px 4px;
+      border: 1px solid #45465c;
+      border-radius: 12px;
+      background: #202230;
+      color: white;
+      font-size: 14px;
+    }
+
+    nav button.active {
+      background: #6655df;
+      border-color: #6655df;
+    }
+
+    main { padding: 8px 16px 24px; }
+
+    .panel {
+      padding: 18px;
+      background: var(--tg-theme-secondary-bg-color, #1b1e2a);
+      border-radius: 16px;
+    }
+
+    .panel h2 { margin-top: 0; }
+
+    textarea, select {
+      width: 100%;
+      padding: 13px;
+      margin: 8px 0 12px;
+      border: 1px solid #45465c;
+      border-radius: 10px;
+      background: #11131c;
+      color: white;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .action {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 12px;
+      background: #6655df;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .note {
+      color: var(--tg-theme-hint-color, #a9aabe);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #292b3a;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🤖 Mitran AI</h1>
+    <p>Your personal creative AI companion</p>
+  </header>
+
+  <nav aria-label="AI tools">
+    <button class="active" data-tab="chat">💬 Chat</button>
+    <button data-tab="image">🖼️ Images</button>
+    <button data-tab="video">🎬 Videos</button>
+  </nav>
+
+  <main>
+    <section class="panel" id="chat">
+      <h2>Chat with Mitran</h2>
+      <label for="language">Your language</label>
+      <select id="language">
+        <option>English</option>
+        <option>Tamil</option>
+        <option>Tanglish</option>
+      </select>
+
+      <label for="chatPrompt">What would you like to talk about?</label>
+      <textarea id="chatPrompt" placeholder="Write your message here..."></textarea>
+      <button class="action" id="chatButton">Start chatting</button>
+      <p class="note">AI chat is not connected yet. We'll add the AI service next.</p>
+      <div class="status" id="chatStatus" hidden></div>
+    </section>
+
+    <section class="panel" id="image" hidden>
+      <h2>Create an image</h2>
+      <label for="imagePrompt">Describe your image</label>
+      <textarea id="imagePrompt" placeholder="Example: An anime warrior standing under a glowing moon..."></textarea>
+      <button class="action" id="imageButton">Generate image</button>
+      <p class="note">Image generation will work after we connect an image AI service.</p>
+      <div class="status" id="imageStatus" hidden></div>
+    </section>
+
+    <section class="panel" id="video" hidden>
+      <h2>Create a video</h2>
+      <label for="videoPrompt">Describe your video</label>
+      <textarea id="videoPrompt" placeholder="Describe the scene, movement, and style..."></textarea>
+      <button class="action" id="videoButton">Generate video</button>
+      <p class="note">Video generation will work after we connect a video AI service.</p>
+      <div class="status" id="videoStatus" hidden></div>
+    </section>
+  </main>
+
+  <script>
+    const telegram = window.Telegram?.WebApp;
+    telegram?.ready();
+    telegram?.expand();
+
+    document.querySelectorAll("[data-tab]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-tab]").forEach(item => {
+          item.classList.toggle("active", item === button);
+        });
+
+        document.querySelectorAll("main > section").forEach(section => {
+          section.hidden = section.id !== button.dataset.tab;
+        });
+      });
+    });
+
+    function showStatus(id, message) {
+      const box = document.getElementById(id);
+      box.textContent = message;
+      box.hidden = false;
+    }
+
+    document.getElementById("chatButton").addEventListener("click", () => {
+      const prompt = document.getElementById("chatPrompt").value.trim();
+
+      showStatus(
+        "chatStatus",
+        prompt
+          ? "Your message is ready. We'll connect Mitran to an AI model in the next stage."
+          : "Please enter a message first."
+      );
+    });
+
+    document.getElementById("imageButton").addEventListener("click", () => {
+      const prompt = document.getElementById("imagePrompt").value.trim();
+
+      showStatus(
+        "imageStatus",
+        prompt
+          ? "Your image prompt is ready. Image generation is not connected yet."
+          : "Please describe the image first."
+      );
+    });
+
+    document.getElementById("videoButton").addEventListener("click", () => {
+      const prompt = document.getElementById("videoPrompt").value.trim();
+
+      showStatus(
+        "videoStatus",
+        prompt
+          ? "Your video prompt is ready. Video generation is not connected yet."
+          : "Please describe the video first."
+      );
+    });
+  </script>
+</body>
+</html>
